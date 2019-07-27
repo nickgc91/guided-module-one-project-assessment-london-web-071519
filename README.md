@@ -1,6 +1,6 @@
 Module One Final Project
 ========================
-Hello World - test 123
+Hello World - test 123 - final test
 
 Congratulations, you're at the end of module one! You've worked crazy hard to get here and have learned a ton.
 
