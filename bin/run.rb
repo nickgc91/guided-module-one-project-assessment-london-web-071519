@@ -1,5 +1,5 @@
 require_relative '../config/environment'
 
 
-binding.pry
-0
+cli = CommandLineInterface.new
+cli.greet
