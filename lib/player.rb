@@ -1,7 +1,7 @@
 class Player < ActiveRecord::Base
 
-    has_many :playersfans
-    has_many :fans, through: :playersfans
+    has_many :player_fans
+    has_many :fans, through: :player_fans
 
     
 end
