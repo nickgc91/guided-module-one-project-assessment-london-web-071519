@@ -81,6 +81,9 @@ class CommandLineInterface
 
     def run
 
+        playerfan1 = PlayerFan.create(player_id: 7, fan_id: 11)
+        puts playerfan1
+
         require "tty-prompt"
         prompt = TTY::Prompt.new
 
