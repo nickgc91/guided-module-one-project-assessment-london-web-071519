@@ -12,7 +12,7 @@ class CommandLineInterface
     end
 
 
-    def show_favorite_players(user)
+    def show_favorite_players(user) #this method is backend finding the players of a specifc fan
         fan1 = Fan.find_by(name: user)
         players_array = fan1.players
         players_array.each do |player|
@@ -21,45 +21,49 @@ class CommandLineInterface
     end
 
 
-    def view_fav_players_of_another_fan
+    def view_fav_players_of_another_fan #this method displays the favorite players of a specific fan to the CLI
         require "tty-prompt"
         prompt = TTY::Prompt.new
 
         puts "Great, you want to see who a specifc fan's favorite players are :)."
                 fan_you_want = prompt.ask('Please type in the name of the fan whose favorite players you want to see: ', required: true)
                 while Fan.find_by(name: fan_you_want) == nil
-                    puts "Sorry we didn't recognize that username."
+                    puts "\nSorry we didn't recognize that username."
                     fan_you_want = prompt.ask("Please try again. Type in the name of the fan username: ", required: true)
                 end
-                puts "#{fan_you_want}\'s favorite player(s):"   
+                puts "\n#{fan_you_want}\'s favorite player(s):"   
                 show_favorite_players(fan_you_want) 
     end
     
 
-    def show_fans(player)
+    def show_fans(player) #this method is backend finding the fans of a specifc player
         player1 = Player.find_by(name: player)
-        players_array = player1.fans
-        players_array.each do |player|
-            puts player.name 
+        fans_array = player1.fans
+        fans_array.each do |fan|
+            puts fan.name 
         end
     end
 
-
-    def all_fans_of_specific_player
+    def choose_specific_player
         require "tty-prompt"
         prompt = TTY::Prompt.new
-
-        puts "So you want to see the fans of a specific player :). Awesome, which player would you like to see the fans for?"
-        player_you_want = prompt.ask('Please type in the name of the player whose fans you want to see: ', required: true)
+        player_you_want = prompt.ask('Please type in the name of the player you want: ', required: true)
                 while Player.find_by(name: player_you_want) == nil
                     puts "Sorry we didn't recognize that username."
                     player_you_want = prompt.ask("Please try again. Type in the name of the player: ", required: true)
                 end
-                puts "#{player_you_want}\'s fans:"
-                show_fans(player_you_want)
+            player_you_want
     end
 
-    def option_select
+
+    def all_fans_of_specific_player #this method displays the fans of a specific player to the CLI
+        puts "\nSo you want to see the fans of a specific player :). Awesome, which player would you like to see the fans for?"
+        chosen_player = choose_specific_player
+        puts "\n#{chosen_player}\'s fans:"
+                show_fans(chosen_player)
+    end
+
+    def option_select #this method provides the selection functionality of the app. The user can choose from several options. 
         require "tty-prompt"
         prompt = TTY::Prompt.new
 
@@ -69,13 +73,48 @@ class CommandLineInterface
             menu.choice 'View my favorite players'
             menu.choice 'View all fans of a specifc player'
             menu.choice 'View favorite players of another fan'
-            menu.choice 'View total market value of the team'
+            menu.choice 'View total market value of the starting 11 players'
             menu.choice 'Add a new favorite player to my account'
             menu.choice 'Delete a favorite player from my account'
             menu.choice 'I just got a season ticket. Update my club season ticket status.'
             menu.choice 'exit'
           end
 
+    end
+
+    def total_market_value_of_starting_11
+        sum = 0
+        Player.where(starter: true).map do |player|
+           player_value = player.market_value.split(/£/)
+           player_value = player_value[1].to_i
+           sum += player_value
+        end
+       
+        sum = sum.to_s
+        sum = "£" + sum
+        puts "\nThe total market value of the 11 starting players on the team is #{sum}"
+    end
+
+    def create_new_favorite_player_for_user(user)
+        require "tty-prompt"
+        prompt = TTY::Prompt.new
+
+        puts "\nHere's a list of the players:"
+        Player.all.each do |player|
+            puts player.name
+        end
+        puts "\n"
+        chosen_player = choose_specific_player
+        player_to_use = Player.find_by(name: chosen_player)
+        fan_to_use = Fan.find_by(name: user)
+        puts player_to_use.id
+        puts fan_to_use.id
+        if PlayerFan.find_by(player_id: player_to_use.id, fan_id: fan_to_use.id) == nil
+            PlayerFan.create(player_id: player_to_use.id, fan_id: fan_to_use.id)
+            puts "#{chosen_player} was added to your favorite players :)"
+        else
+            puts "This is already one of your favorite players :)"
+        end
     end
 
 
@@ -93,7 +132,7 @@ class CommandLineInterface
             exit
         else
             while Fan.find_by(name: user) == nil
-            puts "Sorry we didn't recognize that username."
+            puts "\nSorry we didn't recognize that username."
             user = prompt.ask("Please try again. Type in your fan username to get started: ", required: true)
             end
         end
@@ -107,16 +146,16 @@ class CommandLineInterface
           while user_option_choice != 'exit'
 
             if user_option_choice == 'View my favorite players'
-                puts "Your favorite player(s):"
+                puts "\nYour favorite player(s):"
                 show_favorite_players(user) 
             elsif user_option_choice == 'View all fans of a specifc player'
                 all_fans_of_specific_player
             elsif user_option_choice == 'View favorite players of another fan'
                 view_fav_players_of_another_fan
-            elsif user_option_choice == 'View total market value of the team'
-                puts "Nick still needs to build this one: total market value of team"
+            elsif user_option_choice == 'View total market value of the starting 11 players'
+                total_market_value_of_starting_11
             elsif user_option_choice == 'Add a new favorite player to my account'
-                puts "Nick still needs to build this one: fan user can add a favorite player"
+                create_new_favorite_player_for_user(user)
             elsif user_option_choice == 'Delete a favorite player from my account'
                 puts "Nick still needs to build this one: fan user can delete a favorite player"
             elsif user_option_choice == 'I just got a season ticket. Update my club season ticket status.'
