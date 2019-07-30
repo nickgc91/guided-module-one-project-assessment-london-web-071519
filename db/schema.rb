@@ -14,6 +14,7 @@ ActiveRecord::Schema.define(version: 2019_07_29_152320) do
 
   create_table "fans", force: :cascade do |t|
     t.string "name"
+    t.boolean "season_ticket_holder"
   end
 
   create_table "player_fans", force: :cascade do |t|
@@ -24,6 +25,9 @@ ActiveRecord::Schema.define(version: 2019_07_29_152320) do
 
   create_table "players", force: :cascade do |t|
     t.string "name"
+    t.string "position"
+    t.string "market_value"
+    t.boolean "starter"
   end
 
 end
