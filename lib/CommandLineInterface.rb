@@ -109,10 +109,18 @@ class CommandLineInterface
 
 
 
-    def select_player_from_list
-        Player.all.each do |player|
-            puts player.name
+    def select_player_from_list_for_add
+        require "tty-prompt"
+        prompt = TTY::Prompt.new
+
+        puts "\n \n"
+
+        prompt.select("Which player would you like to add?") do |menu|
+            Player.all.each do |player|
+                menu.choice player.name 
+            end
         end
+        
     end
 
     def create_favorite_player_for_user(user)
@@ -124,14 +132,9 @@ class CommandLineInterface
             return
         else
 
-        puts "\nHere's a list of the players:"
-        Player.all.each do |player|
-            puts player.name
-        end
-        puts "\n"
-        chosen_player = choose_specific_player #returns player that user wants 
-        player_to_use = Player.find_by(name: chosen_player) #access the instance of object Player with the name chosen_player
-        fan_to_use = Fan.find_by(name: user) #access the instance of fan that is the current user
+            chosen_player = select_player_from_list_for_add
+            player_to_use = Player.find_by(name: chosen_player) #access the instance of object Player with the name chosen_player
+            fan_to_use = Fan.find_by(name: user) #access the instance of fan that is the current user
         
             if PlayerFan.find_by(player_id: player_to_use.id, fan_id: fan_to_use.id) == nil #check that player is not already a favorite
                  PlayerFan.create(player_id: player_to_use.id, fan_id: fan_to_use.id) #adds player to the user
@@ -146,10 +149,7 @@ class CommandLineInterface
         require "tty-prompt"
         prompt = TTY::Prompt.new
 
-        puts "\nHere's a list of your favorite players:"
-        show_favorite_players(user)
-        puts "\n"
-        chosen_player = choose_specific_player #returns player that user wants 
+        chosen_player = select_player_from_list_for_add
         player_to_use = Player.find_by(name: chosen_player) #access the instance of object Player with the name chosen_player
         fan_to_use = Fan.find_by(name: user) #access the instance of fan that is the current user
         if PlayerFan.find_by(player_id: player_to_use.id, fan_id: fan_to_use.id)  #check that player is not already a favorite
@@ -212,8 +212,6 @@ class CommandLineInterface
 
         greet
         user = logging_in
-
-        select_player_from_list
         
         #user has successfully logged in
         puts "Thanks for logging in :)"
