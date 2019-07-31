@@ -51,12 +51,13 @@ starting = 0
         end
 
         #creating fans that have players and players that have fans
-        if PlayerFan.create(player_id: player1.id, fan_id: fan1.id) == nil
-            PlayerFan.create(player_id: player1.id, fan_id: fan1.id) 
-        end
-        if PlayerFan.create(player_id: player2.id, fan_id: fan1.id) == nil
-            PlayerFan.create(player_id: player2.id, fan_id: fan1.id) 
-        end
-        
+        PlayerFan.create(player_id: player1.id, fan_id: fan1.id)
+        PlayerFan.create(player_id: player2.id, fan_id: fan1.id)
     end
 end
+
+
+
+
+
+puts "yo"

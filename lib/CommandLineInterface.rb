@@ -5,68 +5,33 @@ class CommandLineInterface
     #To turn it back on:
     #ActiveRecord::Base.logger = old_logger
 
-
+#greets user into the app
     def greet
         puts 'Welcome to Football Fan Masters, the best resource for football players information in the world!'
     end
 
-    def favorite_players(user)
-        fan1 = Fan.find_by(name: user)
-        fan1.players
-    end
-
-
-    def show_favorite_players(user) #this method is backend finding the players of a specifc fan
-        players_array = favorite_players(user)
-        players_array.each do |player|
-            puts player.name 
-        end
-    end
-
-
-    def view_fav_players_of_another_fan #this method displays the favorite players of a specific fan to the CLI
+#allows user to login with name
+    def logging_in
         require "tty-prompt"
         prompt = TTY::Prompt.new
 
-        puts "Great, you want to see who a specifc fan's favorite players are :)."
-                fan_you_want = prompt.ask('Please type in the name of the fan whose favorite players you want to see: ', required: true)
-                while Fan.find_by(name: fan_you_want) == nil
-                    puts "\nSorry we didn't recognize that username."
-                    fan_you_want = prompt.ask("Please try again. Type in the name of the fan username: ", required: true)
-                end
-                puts "\n#{fan_you_want}\'s favorite player(s):"   
-                show_favorite_players(fan_you_want) 
-    end
-    
-
-    def show_fans(player) #this method is backend finding the fans of a specifc player
-        player1 = Player.find_by(name: player)
-        fans_array = player1.fans
-        fans_array.each do |fan|
-            puts fan.name 
+        user = prompt.ask('Please type in your full name to get started or type exit to quit app: ', required: true)
+        if user == "exit"
+            exit
+        else
+            while Fan.find_by(name: user) == nil
+            puts "\nSorry we didn't recognize that username."
+            user = prompt.ask("Please try again. Type in your fan username to get started: ", required: true)
+            if user == 'exit'
+                exit
+            end
+            end
         end
+        user
     end
 
-    def choose_specific_player #prompts the user for a player name and returns that player if the player exists
-        require "tty-prompt"
-        prompt = TTY::Prompt.new
-        player_you_want = prompt.ask('Please type in the name of the player: ', required: true)
-                while Player.find_by(name: player_you_want) == nil
-                    puts "Sorry we didn't recognize that username."
-                    player_you_want = prompt.ask("Please try again. Type in the name of the player: ", required: true)
-                end
-            player_you_want
-    end
-
-
-    def all_fans_of_specific_player #this method displays the fans of a specific player to the CLI
-        puts "\nSo you want to see the fans of a specific player :). Awesome, which player would you like to see the fans for?"
-        chosen_player = choose_specific_player
-        puts "\n#{chosen_player}\'s fans:"
-                show_fans(chosen_player)
-    end
-
-    def option_select #this method provides the selection functionality of the app. The user can choose from several options. 
+#this method provides the menu selection functionality of the app. The user can choose from several options. 
+    def option_select 
         require "tty-prompt"
         prompt = TTY::Prompt.new
 
@@ -83,6 +48,67 @@ class CommandLineInterface
             menu.choice 'exit'
           end
 
+    end
+
+#returns the favorite players of a specific fan
+    def favorite_players(fan)
+        fan1 = Fan.find_by(name: fan)
+        fan1.players
+    end
+
+#displays the favorite players of a specific fan
+    def show_favorite_players(fan) #this method is backend finding the players of a specifc fan
+        players_array = favorite_players(fan)
+        players_array.each do |player|
+            puts player.name 
+        end
+    end
+
+#this method displays the favorite players of another specific fan that the user fan wants to see
+    def view_fav_players_of_another_fan 
+        require "tty-prompt"
+        prompt = TTY::Prompt.new
+
+        puts "Great, you want to see who a specifc fan's favorite players are :)."
+                fan_you_want = prompt.ask('Please type in the full name of the fan whose favorite players you want to see: ', required: true)
+                while Fan.find_by(name: fan_you_want) == nil
+                    puts "\nSorry we didn't recognize that username."
+                    fan_you_want = prompt.ask("Please try again. Type in the name of the fan username: ", required: true)
+                end
+                puts "\n#{fan_you_want}\'s favorite player(s):"   
+                show_favorite_players(fan_you_want) 
+    end
+    
+#displays the fans of a specifc player
+    def show_fans(player) 
+        player1 = Player.find_by(name: player)
+        fans_array = player1.fans
+        fans_array.each do |fan|
+            puts fan.name 
+        end
+    end
+
+    def all_players
+        Player.all
+    end
+
+    # def choose_specific_player #prompts the user for a player name and returns that player if the player exists
+    #     require "tty-prompt"
+    #     prompt = TTY::Prompt.new
+    #     player_you_want = prompt.ask('Please type in the name of the player: ', required: true)
+    #             while Player.find_by(name: player_you_want) == nil
+    #                 puts "Sorry we didn't recognize that username."
+    #                 player_you_want = prompt.ask("Please try again. Type in the name of the player: ", required: true)
+    #             end
+    #         player_you_want
+    # end
+
+
+    def all_fans_of_specific_player #this method displays the fans of a specific player to the CLI
+        puts "\nSo you want to see the fans of a specific player :). Awesome, which player would you like to see the fans for?"
+        chosen_player = select_player_from_list
+        puts "\n#{chosen_player}\'s fans:"
+                show_fans(chosen_player)
     end
 
 
@@ -109,14 +135,14 @@ class CommandLineInterface
 
 
 
-    def select_player_from_list
+    def select_player_from_list(my_players)
         require "tty-prompt"
         prompt = TTY::Prompt.new
 
         puts "\n \n"
 
-        prompt.select("Which player would you like to add?") do |menu|
-            Player.all.each do |player|
+        prompt.select("Here's a list of the players:") do |menu|
+            my_players.each do |player|
                 menu.choice player.name 
             end
         end
@@ -132,7 +158,7 @@ class CommandLineInterface
             return
         else
 
-            chosen_player = select_player_from_list
+            chosen_player = select_player_from_list(all_players)
             player_to_use = Player.find_by(name: chosen_player) #access the instance of object Player with the name chosen_player
             fan_to_use = Fan.find_by(name: user) #access the instance of fan that is the current user
         
@@ -143,13 +169,19 @@ class CommandLineInterface
                puts "This is already one of your favorite players :)" #otherwise tell user that the player is already one of their favorite players
              end
          end
+
     end
 
     def delete_favorite_player_for_user(user)
         require "tty-prompt"
         prompt = TTY::Prompt.new
 
-        chosen_player = select_player_from_list
+        if favorite_players(user).length == 0
+            puts "You have no favorite players right now :("
+            return
+        end
+
+        chosen_player = select_player_from_list(favorite_players(user))
         player_to_use = Player.find_by(name: chosen_player) #access the instance of object Player with the name chosen_player
         fan_to_use = Fan.find_by(name: user) #access the instance of fan that is the current user
         if PlayerFan.find_by(player_id: player_to_use.id, fan_id: fan_to_use.id)  #check that player is not already a favorite
@@ -166,44 +198,6 @@ class CommandLineInterface
         fan.update(season_ticket_holder: true)
         puts "We've updated your account so other fans know that they can meet up with you at the stadium during season games :)."
     end
-
-
-    def logging_in
-        require "tty-prompt"
-        prompt = TTY::Prompt.new
-
-        user = prompt.ask('Please type in your fan username to get started or type exit to quit app: ', required: true)
-        if user == "exit"
-            exit
-        else
-            while Fan.find_by(name: user) == nil
-            puts "\nSorry we didn't recognize that username."
-            user = prompt.ask("Please try again. Type in your fan username to get started: ", required: true)
-            if user == 'exit'
-                exit
-            end
-            end
-        end
-        user
-    end
-
-
-
-
-
-
-    def test(user) #this method provides the selection functionality of the app. The user can choose from several options. 
-        require "tty-prompt"
-        prompt = TTY::Prompt.new
-
-        prompt.select("Choose the player you want to add:") do |menu|
-            favorite_players(user).each do |player|
-              menu.choice player.name
-            end
-        end
- 
-    end
-
 
 
 
