@@ -101,6 +101,20 @@ class CommandLineInterface
         puts "\nThe total market value of the 11 starting players on the team is #{sum}"
     end
 
+
+
+
+
+
+
+
+
+    def select_player_from_list
+        Player.all.each do |player|
+            puts player.name
+        end
+    end
+
     def create_favorite_player_for_user(user)
         require "tty-prompt"
         prompt = TTY::Prompt.new
@@ -198,6 +212,8 @@ class CommandLineInterface
 
         greet
         user = logging_in
+
+        select_player_from_list
         
         #user has successfully logged in
         puts "Thanks for logging in :)"
