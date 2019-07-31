@@ -133,16 +133,18 @@ class CommandLineInterface
         end
     end
 
+    def got_season_ticket(user)
+        puts "\n \nCongrats on getting a season ticket. You're a true fan! :)"
+        fan = Fan.find_by(name: user)
+        fan.update(season_ticket_holder: true)
+        puts "We've updated your account so other fans know that they can meet up with you at the stadium during season games :)."
+    end
 
-    def run
 
-        playerfan1 = PlayerFan.create(player_id: 7, fan_id: 11)
-        puts playerfan1
-
+    def logging_in
         require "tty-prompt"
         prompt = TTY::Prompt.new
 
-        greet
         user = prompt.ask('Please type in your fan username to get started or type exit to quit app: ', required: true)
         if user == "exit"
             exit
@@ -150,8 +152,19 @@ class CommandLineInterface
             while Fan.find_by(name: user) == nil
             puts "\nSorry we didn't recognize that username."
             user = prompt.ask("Please try again. Type in your fan username to get started: ", required: true)
+            if user == 'exit'
+                exit
+            end
             end
         end
+        user
+    end
+
+
+
+    def run
+        greet
+        user = logging_in
         
         #user has successfully logged in
         puts "Thanks for logging in :)"
@@ -175,7 +188,7 @@ class CommandLineInterface
             elsif user_option_choice == 'Delete a favorite player from my account'
                 delete_favorite_player_for_user(user)
             elsif user_option_choice == 'I just got a season ticket. Update my club season ticket status.'
-                puts "Nick still needs to build this one: update season ticket status"
+                got_season_ticket(user)
             end
         
             sleep(1.5)
