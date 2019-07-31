@@ -109,7 +109,7 @@ class CommandLineInterface
 
 
 
-    def select_player_from_list_for_add
+    def select_player_from_list
         require "tty-prompt"
         prompt = TTY::Prompt.new
 
@@ -132,7 +132,7 @@ class CommandLineInterface
             return
         else
 
-            chosen_player = select_player_from_list_for_add
+            chosen_player = select_player_from_list
             player_to_use = Player.find_by(name: chosen_player) #access the instance of object Player with the name chosen_player
             fan_to_use = Fan.find_by(name: user) #access the instance of fan that is the current user
         
@@ -149,7 +149,7 @@ class CommandLineInterface
         require "tty-prompt"
         prompt = TTY::Prompt.new
 
-        chosen_player = select_player_from_list_for_add
+        chosen_player = select_player_from_list
         player_to_use = Player.find_by(name: chosen_player) #access the instance of object Player with the name chosen_player
         fan_to_use = Fan.find_by(name: user) #access the instance of fan that is the current user
         if PlayerFan.find_by(player_id: player_to_use.id, fan_id: fan_to_use.id)  #check that player is not already a favorite
