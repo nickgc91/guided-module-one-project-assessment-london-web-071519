@@ -10,10 +10,14 @@ class CommandLineInterface
         puts 'Welcome to Football Fan Masters, the best resource for football players information in the world!'
     end
 
+    def favorite_players(user)
+        fan1 = Fan.find_by(name: user)
+        fan1.players
+    end
+
 
     def show_favorite_players(user) #this method is backend finding the players of a specifc fan
-        fan1 = Fan.find_by(name: user)
-        players_array = fan1.players
+        players_array = favorite_players(user)
         players_array.each do |player|
             puts player.name 
         end
@@ -81,6 +85,8 @@ class CommandLineInterface
 
     end
 
+
+
     def total_market_value_of_starting_11 #calculates the total market value of the 11 
         #starting players and prints out a message to share the value with the user
         sum = 0
@@ -99,6 +105,11 @@ class CommandLineInterface
         require "tty-prompt"
         prompt = TTY::Prompt.new
 
+        if favorite_players(user).length > 4 #a user can only have 5 favorite players
+            puts "You can only have 5 favorite players!! Delete one of your players so you can add a new one :)"
+            return
+        else
+
         puts "\nHere's a list of the players:"
         Player.all.each do |player|
             puts player.name
@@ -107,12 +118,14 @@ class CommandLineInterface
         chosen_player = choose_specific_player #returns player that user wants 
         player_to_use = Player.find_by(name: chosen_player) #access the instance of object Player with the name chosen_player
         fan_to_use = Fan.find_by(name: user) #access the instance of fan that is the current user
-        if PlayerFan.find_by(player_id: player_to_use.id, fan_id: fan_to_use.id) == nil #check that player is not already a favorite
-            PlayerFan.create(player_id: player_to_use.id, fan_id: fan_to_use.id) #adds player to the user
-            puts "#{chosen_player} was added to your favorite players :)" 
-        else
-            puts "This is already one of your favorite players :)" #otherwise tell user that the player is already one of their favorite players
-        end
+        
+            if PlayerFan.find_by(player_id: player_to_use.id, fan_id: fan_to_use.id) == nil #check that player is not already a favorite
+                 PlayerFan.create(player_id: player_to_use.id, fan_id: fan_to_use.id) #adds player to the user
+                 puts "#{chosen_player} was added to your favorite players :)" 
+             else
+               puts "This is already one of your favorite players :)" #otherwise tell user that the player is already one of their favorite players
+             end
+         end
     end
 
     def delete_favorite_player_for_user(user)
@@ -162,7 +175,27 @@ class CommandLineInterface
 
 
 
+
+
+
+    def test(user) #this method provides the selection functionality of the app. The user can choose from several options. 
+        require "tty-prompt"
+        prompt = TTY::Prompt.new
+
+        prompt.select("Choose the player you want to add:") do |menu|
+            favorite_players(user).each do |player|
+              menu.choice player.name
+            end
+        end
+ 
+    end
+
+
+
+
+
     def run
+
         greet
         user = logging_in
         
