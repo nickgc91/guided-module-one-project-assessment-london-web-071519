@@ -3,7 +3,6 @@ class CommandLineInterface
     old_logger = ActiveRecord::Base.logger
     ActiveRecord::Base.logger = nil
     #To turn it back on:
-
     #ActiveRecord::Base.logger = old_logger
 
 
@@ -44,10 +43,10 @@ class CommandLineInterface
         end
     end
 
-    def choose_specific_player
+    def choose_specific_player #prompts the user for a player name and returns that player if the player exists
         require "tty-prompt"
         prompt = TTY::Prompt.new
-        player_you_want = prompt.ask('Please type in the name of the player you want: ', required: true)
+        player_you_want = prompt.ask('Please type in the name of the player: ', required: true)
                 while Player.find_by(name: player_you_want) == nil
                     puts "Sorry we didn't recognize that username."
                     player_you_want = prompt.ask("Please try again. Type in the name of the player: ", required: true)
@@ -82,7 +81,8 @@ class CommandLineInterface
 
     end
 
-    def total_market_value_of_starting_11
+    def total_market_value_of_starting_11 #calculates the total market value of the 11 
+        #starting players and prints out a message to share the value with the user
         sum = 0
         Player.where(starter: true).map do |player|
            player_value = player.market_value.split(/£/)
@@ -95,7 +95,7 @@ class CommandLineInterface
         puts "\nThe total market value of the 11 starting players on the team is #{sum}"
     end
 
-    def create_new_favorite_player_for_user(user)
+    def create_favorite_player_for_user(user)
         require "tty-prompt"
         prompt = TTY::Prompt.new
 
@@ -104,16 +104,32 @@ class CommandLineInterface
             puts player.name
         end
         puts "\n"
-        chosen_player = choose_specific_player
-        player_to_use = Player.find_by(name: chosen_player)
-        fan_to_use = Fan.find_by(name: user)
-        puts player_to_use.id
-        puts fan_to_use.id
-        if PlayerFan.find_by(player_id: player_to_use.id, fan_id: fan_to_use.id) == nil
-            PlayerFan.create(player_id: player_to_use.id, fan_id: fan_to_use.id)
-            puts "#{chosen_player} was added to your favorite players :)"
+        chosen_player = choose_specific_player #returns player that user wants 
+        player_to_use = Player.find_by(name: chosen_player) #access the instance of object Player with the name chosen_player
+        fan_to_use = Fan.find_by(name: user) #access the instance of fan that is the current user
+        if PlayerFan.find_by(player_id: player_to_use.id, fan_id: fan_to_use.id) == nil #check that player is not already a favorite
+            PlayerFan.create(player_id: player_to_use.id, fan_id: fan_to_use.id) #adds player to the user
+            puts "#{chosen_player} was added to your favorite players :)" 
         else
-            puts "This is already one of your favorite players :)"
+            puts "This is already one of your favorite players :)" #otherwise tell user that the player is already one of their favorite players
+        end
+    end
+
+    def delete_favorite_player_for_user(user)
+        require "tty-prompt"
+        prompt = TTY::Prompt.new
+
+        puts "\nHere's a list of your favorite players:"
+        show_favorite_players(user)
+        puts "\n"
+        chosen_player = choose_specific_player #returns player that user wants 
+        player_to_use = Player.find_by(name: chosen_player) #access the instance of object Player with the name chosen_player
+        fan_to_use = Fan.find_by(name: user) #access the instance of fan that is the current user
+        if PlayerFan.find_by(player_id: player_to_use.id, fan_id: fan_to_use.id)  #check that player is not already a favorite
+            PlayerFan.find_by(player_id: player_to_use.id, fan_id: fan_to_use.id).destroy #deletes favorite player from user
+            puts "#{chosen_player} was deleted from your favorite players :)" 
+        else
+            puts "This is not one of your favorite players :)" #otherwise tell user that the player is already one of their favorite players
         end
     end
 
@@ -155,9 +171,9 @@ class CommandLineInterface
             elsif user_option_choice == 'View total market value of the starting 11 players'
                 total_market_value_of_starting_11
             elsif user_option_choice == 'Add a new favorite player to my account'
-                create_new_favorite_player_for_user(user)
+                create_favorite_player_for_user(user)
             elsif user_option_choice == 'Delete a favorite player from my account'
-                puts "Nick still needs to build this one: fan user can delete a favorite player"
+                delete_favorite_player_for_user(user)
             elsif user_option_choice == 'I just got a season ticket. Update my club season ticket status.'
                 puts "Nick still needs to build this one: update season ticket status"
             end
