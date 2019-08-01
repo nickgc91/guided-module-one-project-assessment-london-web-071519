@@ -9,7 +9,7 @@ class CommandLineInterface
 
     def run
 
-        greet
+       
         user = logging_in
         
         #user has successfully logged in
@@ -27,8 +27,8 @@ class CommandLineInterface
                 all_fans_of_specific_player
             elsif user_option_choice == 'View favorite players of another fan'
                 view_fav_players_of_another_fan
-            elsif user_option_choice == 'View total market value of the starting 11 players'
-                total_market_value_of_starting_11
+            elsif user_option_choice == 'View most expensive player from a specifc premier league team'
+                most_expensive_player_on_team
             elsif user_option_choice == 'Add a new favorite player to my account'
                 create_favorite_player_for_user(user)
             elsif user_option_choice == 'Delete a favorite player from my account'
@@ -42,9 +42,7 @@ class CommandLineInterface
             user_option_choice = option_select
         end 
 
-    
     end
-   
-        
+
 end
-    
+
