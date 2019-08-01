@@ -8,19 +8,32 @@ def logging_in
     require "tty-prompt"
     prompt = TTY::Prompt.new
 
-    user = prompt.ask('Please type in your full name to get started or type exit to quit app: ', required: true)
-    if user == "exit"
-        exit
-    else
-        while Fan.find_by(name: user) == nil
-        puts "\nSorry we didn't recognize that username."
-        user = prompt.ask("Please try again. Type in your fan username to get started: ", required: true)
-        if user == 'exit'
-            exit
-        end
-        end
+#provide user two options --> 1) sign in or 2) create a new account
+    welcome = prompt.select("Welcome:") do |menu|
+        menu.choice 'Sign In'
+        menu.choice 'Create New Account'
     end
-    user
+
+#sign in: prompt user for name 
+    if welcome == 'Sign In'
+         user_name = prompt.ask('Please type in your full name to get started or type exit to quit app: ', required: true)
+         if user_name == "exit"
+         exit
+        else
+            while Fan.find_by(name: user_name) == nil
+                puts "\nSorry we didn't recognize that name."
+                user_name = prompt.ask("Please try again. Type in your name to get started: ", required: true)
+            if user_name == 'exit'
+                exit
+            end
+            end
+        end
+    elsif welcome == 'Create New Account'
+        user_name = prompt.ask('Please type in your full name to get started or type exit to quit app: ', required: true)
+        Fan.create(name: user_name, season_ticket_holder: false)
+        puts "Your Football Fan Masters account has been created. Your username is #{user_name} :)"
+    end
+   user_name
 end
 
 #this method provides the menu selection functionality of the app. The user can choose from several options. 
@@ -34,7 +47,7 @@ def option_select
         menu.choice 'View my favorite players'
         menu.choice 'View all fans of a specifc player'
         menu.choice 'View favorite players of another fan'
-        menu.choice 'View total market value of the starting 11 players'
+        menu.choice 'View most expensive player from a specifc premier league team'
         menu.choice 'Add a new favorite player to my account'
         menu.choice 'Delete a favorite player from my account'
         menu.choice 'I just got a season ticket. Update my club season ticket status.'
@@ -45,8 +58,7 @@ end
 
 #returns the favorite players of a specific fan
 def favorite_players(fan)
-    fan1 = Fan.find_by(name: fan)
-    fan1.players
+    Fan.find_by(name: fan).players
 end
 
 #displays the favorite players of a specific fan
@@ -57,20 +69,38 @@ def show_favorite_players(fan) #this method is backend finding the players of a 
     end
 end
 
+#helper method provides array of all fans in database
+def all_fans
+    Fan.all
+end
+
+#allows user to select a specific fan from a menu of all fans
+def select_fan_from_list(my_fans)
+    require "tty-prompt"
+    prompt = TTY::Prompt.new
+
+    puts "\n \n"
+
+    prompt.select("Here's a list of the players: (you can type the name of the player to filter through the players)", filter: true) do |menu|
+        my_fans.each do |fan|
+            menu.choice fan.name
+        end
+    end
+    
+end
+
 #this method displays the favorite players of another specific fan that the user fan wants to see
 def view_fav_players_of_another_fan 
     require "tty-prompt"
     prompt = TTY::Prompt.new
 
-    puts "Great, you want to see who a specifc fan's favorite players are :)."
-            fan_you_want = prompt.ask('Please type in the full name of the fan whose favorite players you want to see: ', required: true)
-            while Fan.find_by(name: fan_you_want) == nil
-                puts "\nSorry we didn't recognize that username."
-                fan_you_want = prompt.ask("Please try again. Type in the name of the fan username: ", required: true)
-            end
-            puts "\n#{fan_you_want}\'s favorite player(s):"   
-            show_favorite_players(fan_you_want) 
+    chosen_fan = select_fan_from_list(all_fans)  
+    
+    show_favorite_players(chosen_fan) 
 end
+
+
+
 
 #displays the fans of a specifc player
 def show_fans(player) 
@@ -81,49 +111,50 @@ def show_fans(player)
     end
 end
 
+#helper method provides array of all players in database
 def all_players
     Player.all
 end
 
-# def choose_specific_player #prompts the user for a player name and returns that player if the player exists
-#     require "tty-prompt"
-#     prompt = TTY::Prompt.new
-#     player_you_want = prompt.ask('Please type in the name of the player: ', required: true)
-#             while Player.find_by(name: player_you_want) == nil
-#                 puts "Sorry we didn't recognize that username."
-#                 player_you_want = prompt.ask("Please try again. Type in the name of the player: ", required: true)
-#             end
-#         player_you_want
-# end
-
 
 def all_fans_of_specific_player #this method displays the fans of a specific player to the CLI
-    puts "\nSo you want to see the fans of a specific player :). Awesome, which player would you like to see the fans for?"
-    chosen_player = select_player_from_list
-    puts "\n#{chosen_player}\'s fans:"
-            show_fans(chosen_player)
+    
+    require "tty-prompt"
+    prompt = TTY::Prompt.new
+
+    chosen_player = select_player_from_list(all_players)
+    
+    show_fans(chosen_player)
 end
 
 
+def all_clubs
+    Club.all
+end
 
-def total_market_value_of_starting_11 #calculates the total market value of the 11 
+def most_expensive_player_on_team #calculates the total market value of the 11 
     #starting players and prints out a message to share the value with the user
-    sum = 0
-    Player.where(starter: true).map do |player|
-       player_value = player.market_value.split(/£/)
-       player_value = player_value[1].to_i
-       sum += player_value
-    end
-   
-    sum = sum.to_s
-    sum = "£" + sum
-    puts "\nThe total market value of the 11 starting players on the team is #{sum}"
+    
+        require "tty-prompt"
+        prompt = TTY::Prompt.new
+    
+        puts "\n \n"
+    
+        chosen_club = prompt.select("For which club do you want to know who the most expensive player is?", filter: true) do |menu|
+            all_clubs.each do |club|
+                menu.choice club.name
+            end
+        end
+
+        my_club = Club.find_by(name: chosen_club)
+        club_players = my_club.players.sort_by do |player|
+            player.market_value.to_i
+        end
+
+        most_expensive_player = club_players.last
+        puts "#{most_expensive_player.name}'s most expensive player is #{most_expensive_player.name}. He is worth £#{most_expensive_player.market_value}M"
+
 end
-
-
-
-
-
 
 
 
@@ -134,9 +165,9 @@ def select_player_from_list(my_players)
 
     puts "\n \n"
 
-    prompt.select("Here's a list of the players:") do |menu|
+    prompt.select("Here's a list of the players: ", filter: true) do |menu|
         my_players.each do |player|
-            menu.choice player.name 
+            menu.choice player.name
         end
     end
     
